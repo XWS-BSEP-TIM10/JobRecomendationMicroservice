@@ -29,6 +29,7 @@ public class JobAdServiceImpl implements JobAdService {
     public JobAd add(JobAd jobAd, List<String> interests) {
         List<Interest> jobInterests = findInterests(interests);
         jobAd.setInterests(jobInterests);
+        jobAd.getInterests().add(savePosition(jobAd.getPosition()));
         return jobAdRepository.save(jobAd);
     }
 
@@ -71,6 +72,11 @@ public class JobAdServiceImpl implements JobAdService {
 
         return newInterests;
 
+    }
+
+    private Interest savePosition(String position){
+        Interest positionInterest = new Interest(position);
+        return interestService.save(positionInterest);
     }
 
 }
