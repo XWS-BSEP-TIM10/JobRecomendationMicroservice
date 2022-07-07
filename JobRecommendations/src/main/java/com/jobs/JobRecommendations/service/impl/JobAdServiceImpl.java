@@ -37,10 +37,12 @@ public class JobAdServiceImpl implements JobAdService {
         User user = userService.findById(userId);
         List<JobAd> jobAdRecommendations = new ArrayList<JobAd>();
 
-        for(Interest interest : user.getInterests()){
-            for(JobAd jobAd : jobAdRepository.findJobAdsForInterest(interest.getDescription())){
-                if(!jobAd.getUserId().equals(userId)){
-                    jobAdRecommendations.add(jobAd);
+        if(user != null) {
+            for (Interest interest : user.getInterests()) {
+                for (JobAd jobAd : jobAdRepository.findJobAdsForInterest(interest.getDescription())) {
+                    if (!jobAd.getUserId().equals(userId)) {
+                        jobAdRecommendations.add(jobAd);
+                    }
                 }
             }
         }
