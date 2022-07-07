@@ -14,6 +14,8 @@ public class JobAd {
     @Id
     private String id;
 
+    private String userId;
+
     private String title;
 
     private String position;
@@ -31,13 +33,14 @@ public class JobAd {
         this.interests = new ArrayList<>();
     }
 
-    public JobAd(String id, String title, String position, String description, Date creationDate, String company) {
+    public JobAd(String id, String title, String position, String description, Date creationDate, String company, String userId) {
         this.id = id;
         this.title = title;
         this.position = position;
         this.description = description;
         this.creationDate = creationDate;
         this.company = company;
+        this.userId = userId;
         this.interests = new ArrayList<>();
     }
 
@@ -76,5 +79,13 @@ public class JobAd {
 
     public List<Interest> getInterests() {
         return interests;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

@@ -8,10 +8,7 @@ import com.jobs.JobRecommendations.service.JobAdService;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import proto.JobAdRequestProto;
-import proto.JobRecommendationGrpcServiceGrpc;
-import proto.NewInterestProto;
-import proto.RemoveInterestResponseProto;
+import proto.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +48,7 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
         RemoveInterestResponseProto responseProto;
 
         JobAd newJobAd = new JobAd(UUID.randomUUID().toString(), request.getTitle(), request.getPosition(),
-                request.getDescription(), new Date(), request.getCompany());
+                request.getDescription(), new Date(), request.getCompany(), request.getUserId());
         List<String> interests = new ArrayList<>();
         for(String interest : request.getRequirementsList()){
             interests.add(interest);
@@ -64,6 +61,29 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
         } else {
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 200").build();
         }
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void findRecommendations(UserIdRequestProto request, StreamObserver<JobAdRecommendationsResponseProto> responseObserver) {
+        JobAdRecommendationsResponseProto responseProto;
+
+        List<JobAd> recommendations = jobAdService.findJobAdRecommendations(request.getUserId());
+
+        List<JobAdRequestProto> requestProtos = new ArrayList<>();
+
+        for(JobAd jobAd : recommendations){
+            List<String> requirements = new ArrayList<>();
+            for(Interest interest : jobAdService.getJobInterests(jobAd.getId())){
+                requirements.add(interest.getDescription());
+            }
+            JobAdRequestProto jobAdProto = JobAdRequestProto.newBuilder().setTitle(jobAd.getTitle())
+                    .setPosition(jobAd.getPosition()).setDescription(jobAd.getDescription()).setUserId(jobAd.getUserId())
+                    .setCompany(jobAd.getCompany()).addAllRequirements(requirements).build();
+            requestProtos.add(jobAdProto);
+        }
+        responseProto = JobAdRecommendationsResponseProto.newBuilder().addAllRecommendations(requestProtos).build();
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
