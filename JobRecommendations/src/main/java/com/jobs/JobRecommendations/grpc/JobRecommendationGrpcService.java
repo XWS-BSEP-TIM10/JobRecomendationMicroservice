@@ -5,6 +5,8 @@ import com.jobs.JobRecommendations.model.JobAd;
 import com.jobs.JobRecommendations.model.User;
 import com.jobs.JobRecommendations.service.InterestService;
 import com.jobs.JobRecommendations.service.JobAdService;
+import com.jobs.JobRecommendations.service.LoggerService;
+import com.jobs.JobRecommendations.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +22,13 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
 
     private final InterestService interestService;
     private final JobAdService jobAdService;
+    private final LoggerService loggerService;
 
     @Autowired
     public JobRecommendationGrpcService(InterestService interestService, JobAdService jobAdService) {
         this.interestService = interestService;
         this.jobAdService = jobAdService;
+        this.loggerService = new LoggerServiceImpl(this.getClass());
     }
 
     @Override
@@ -36,8 +40,10 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
         Interest addedInterest = interestService.addInterest(newInterest, user);
         if (addedInterest == null) {
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 500").build();
+            loggerService.unsuccessfulInterestAdding();
         } else {
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 200").build();
+            loggerService.interestSuccessfullyAdded(addedInterest.getId());
         }
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
@@ -58,8 +64,10 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
 
         if (addedJob == null) {
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 500").build();
+            loggerService.unsuccessfulJobAdding();
         } else {
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 200").build();
+            loggerService.jobSuccessfullyAdded(addedJob.getId());
         }
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
@@ -83,6 +91,7 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
                     .setCompany(jobAd.getCompany()).addAllRequirements(requirements).build();
             requestProtos.add(jobAdProto);
         }
+        loggerService.recommendationsSuccessfullyFounded();
         responseProto = JobAdRecommendationsResponseProto.newBuilder().addAllRecommendations(requestProtos).build();
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
