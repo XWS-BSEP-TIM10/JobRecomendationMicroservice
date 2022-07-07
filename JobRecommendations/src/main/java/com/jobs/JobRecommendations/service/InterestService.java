@@ -5,6 +5,10 @@ import com.jobs.JobRecommendations.model.User;
 
 public interface InterestService {
 
+    Interest save(Interest interest);
+
     Interest addInterest(Interest interest, User user);
+
+    Interest findByDescription(String description);
 
 }

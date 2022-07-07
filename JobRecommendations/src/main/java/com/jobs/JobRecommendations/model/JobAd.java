@@ -2,8 +2,11 @@ package com.jobs.JobRecommendations.model;
 
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
+import org.neo4j.springframework.data.core.schema.Relationship;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Node("JobAd")
 public class JobAd {
@@ -21,7 +24,11 @@ public class JobAd {
 
     private String company;
 
+    @Relationship(type = "INTERESTED", direction = Relationship.Direction.OUTGOING)
+    private List<Interest> interests;
+
     public JobAd() {
+        this.interests = new ArrayList<>();
     }
 
     public JobAd(String id, String title, String position, String description, Date creationDate, String company) {
@@ -31,6 +38,7 @@ public class JobAd {
         this.description = description;
         this.creationDate = creationDate;
         this.company = company;
+        this.interests = new ArrayList<>();
     }
 
     public String getId() {
@@ -60,5 +68,13 @@ public class JobAd {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setInterests(List<Interest> interests) {
+        this.interests = interests;
+    }
+
+    public List<Interest> getInterests() {
+        return interests;
     }
 }

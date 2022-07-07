@@ -8,9 +8,6 @@ import com.jobs.JobRecommendations.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 public class InterestServiceImpl implements InterestService {
 
@@ -24,12 +21,25 @@ public class InterestServiceImpl implements InterestService {
     }
 
     @Override
+    public Interest save(Interest interest) {
+        return interestRepository.save(interest);
+    }
+
+    @Override
     public Interest addInterest(Interest interest, User user) {
         User newUser = findUser(user);
         Interest newInterest = saveInterest(interest);
         newUser.getInterests().add(newInterest);
         userService.save(newUser);
         return newInterest;
+    }
+
+    @Override
+    public Interest findByDescription(String description) {
+        if(interestRepository.findByDescription(description).isPresent()){
+            return interestRepository.findByDescription(description).get();
+        }
+        return null;
     }
 
     private Interest saveInterest(Interest interest){
