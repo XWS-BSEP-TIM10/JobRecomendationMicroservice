@@ -1,8 +1,10 @@
 package com.jobs.JobRecommendations.grpc;
 
+import com.jobs.JobRecommendations.model.Event;
 import com.jobs.JobRecommendations.model.Interest;
 import com.jobs.JobRecommendations.model.JobAd;
 import com.jobs.JobRecommendations.model.User;
+import com.jobs.JobRecommendations.service.EventService;
 import com.jobs.JobRecommendations.service.InterestService;
 import com.jobs.JobRecommendations.service.JobAdService;
 import com.jobs.JobRecommendations.service.LoggerService;
@@ -23,11 +25,13 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
     private final InterestService interestService;
     private final JobAdService jobAdService;
     private final LoggerService loggerService;
+    private final EventService eventService;
 
     @Autowired
-    public JobRecommendationGrpcService(InterestService interestService, JobAdService jobAdService) {
+    public JobRecommendationGrpcService(InterestService interestService, JobAdService jobAdService, EventService eventService) {
         this.interestService = interestService;
         this.jobAdService = jobAdService;
+        this.eventService = eventService;
         this.loggerService = new LoggerServiceImpl(this.getClass());
     }
 
@@ -42,6 +46,7 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 500").build();
             loggerService.unsuccessfulInterestAdding();
         } else {
+            eventService.save(new Event("User with id: " + request.getUserId() + " successfully added interest."));
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 200").build();
             loggerService.interestSuccessfullyAdded(addedInterest.getId());
         }
@@ -66,6 +71,7 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 500").build();
             loggerService.unsuccessfulJobAdding();
         } else {
+            eventService.save(new Event("User with id: " + request.getUserId() + " successfully added job."));
             responseProto = RemoveInterestResponseProto.newBuilder().setStatus("Status 200").build();
             loggerService.jobSuccessfullyAdded(addedJob.getId());
         }
@@ -91,8 +97,21 @@ public class JobRecommendationGrpcService extends JobRecommendationGrpcServiceGr
                     .setCompany(jobAd.getCompany()).addAllRequirements(requirements).build();
             requestProtos.add(jobAdProto);
         }
+        eventService.save(new Event("User with id: " + request.getUserId() + " successfully found job recommendations."));
         loggerService.recommendationsSuccessfullyFounded();
         responseProto = JobAdRecommendationsResponseProto.newBuilder().addAllRecommendations(requestProtos).build();
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getJobRecommendationEvents(JobRecommendationEventProto request, StreamObserver<JobRecommendationEventResponseProto> responseObserver) {
+
+        List<String> events = new ArrayList<>();
+        for(Event event : eventService.findAll()){events.add(event.getDescription());}
+
+        JobRecommendationEventResponseProto responseProto = JobRecommendationEventResponseProto.newBuilder().addAllEvents(events).build();
+
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
