@@ -75,8 +75,10 @@ public class JobAdServiceImpl implements JobAdService {
     }
 
     private Interest savePosition(String position){
-        Interest positionInterest = new Interest(position);
-        return interestService.save(positionInterest);
+        if(interestService.findByDescription(position) != null){
+            return interestService.findByDescription(position);
+        }
+        return interestService.save(new Interest(position));
     }
 
 }
